@@ -10,7 +10,7 @@ namespace LBinarySerializer.PerformanceTests
         {
             var config = ManualConfig.Create(DefaultConfig.Instance)
                 .HideColumns(StatisticColumn.Error, StatisticColumn.StdDev);
-            BenchmarkRunner.Run<SerializerSmallObjectsBenchmarks>(config);
+            BenchmarkRunner.Run<SerializerLargeObjectsBenchmarks>(config);
         }
     }
 }

@@ -16,7 +16,7 @@ public class SerializerLargeObjectsBenchmarks
     private readonly LBinaryDeserializer _deserializer = new();
     private readonly MemoryStream _protobufStream = new(1024);
     
-    private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false
@@ -45,7 +45,7 @@ public class SerializerLargeObjectsBenchmarks
         _protobufSerializedData = _protobufStream.ToArray();
         _protobufStream.Position = 0;
         
-        _jsonSerializedData = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(_rawData, _jsonSerializerOptions);
+        _jsonSerializedData = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(_rawData, JsonSerializerOptions);
         _memoryPackSerializedData = MemoryPackSerializer.Serialize(_rawData);
     }
 
@@ -79,7 +79,7 @@ public class SerializerLargeObjectsBenchmarks
     {
         for (int i = 0; i < N; i++)
         {
-            var bytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(_rawData, _jsonSerializerOptions);
+            var bytes = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(_rawData, JsonSerializerOptions);
         }
     }
 
