@@ -537,7 +537,7 @@ public class LBinarySerializer : IDisposable
 
     #endregion
 
-    public byte[] GetData()
+    public byte[] ToArray()
     {
         if (_offset == 0)
         {
@@ -547,6 +547,11 @@ public class LBinarySerializer : IDisposable
         var destination = GC.AllocateUninitializedArray<byte>(_offset);
         Array.Copy(_internalBuffer, 0, destination, 0, _offset);
         return destination;
+    }
+
+    public ReadOnlyMemory<byte> ToMemory()
+    {
+        return _internalBuffer.AsMemory(0, _offset);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

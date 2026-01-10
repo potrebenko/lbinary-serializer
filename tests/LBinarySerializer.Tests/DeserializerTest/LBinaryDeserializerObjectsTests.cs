@@ -9,7 +9,7 @@ public class LBinaryDeserializerObjectsTests
     {
         // Arrange
         value.Serialize(serializer);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         
         // Act
         var result = deserializer.Deserialize<DummyNestedClass>(data);
@@ -31,7 +31,7 @@ public class LBinaryDeserializerObjectsTests
         // Arrange
         var serializer = new LBinarySerializer();
         value.Serialize(serializer);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -53,7 +53,7 @@ public class LBinaryDeserializerObjectsTests
     public void Deserialize_NotDefinedStructure_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -69,7 +69,7 @@ public class LBinaryDeserializerObjectsTests
     {
         // Arrange
         serializer.WriteStructure(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act

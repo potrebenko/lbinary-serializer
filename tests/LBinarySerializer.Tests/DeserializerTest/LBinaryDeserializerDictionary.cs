@@ -11,7 +11,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -27,7 +27,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write(new Dictionary<int, DummyNestedClass>());
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -43,7 +43,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write((Dictionary<int, DummyNestedClass>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -64,7 +64,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -93,7 +93,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write((Dictionary<int, string>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -114,7 +114,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -143,7 +143,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write((Dictionary<string, DummyNestedClass>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -164,7 +164,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -193,7 +193,7 @@ public class LBinaryDeserializerDictionary
     {
         // Arrange
         serializer.Write((Dictionary<string, double>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act                

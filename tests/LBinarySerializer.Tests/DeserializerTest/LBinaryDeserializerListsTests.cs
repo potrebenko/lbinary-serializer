@@ -10,7 +10,7 @@ public class LBinaryDeserializerListsTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -39,7 +39,7 @@ public class LBinaryDeserializerListsTests
     {
         // Arrange
         serializer.Write((List<DateTime>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -59,7 +59,7 @@ public class LBinaryDeserializerListsTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -88,7 +88,7 @@ public class LBinaryDeserializerListsTests
     {
         // Arrange
         serializer.Write((List<DummyNestedClass>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -108,7 +108,7 @@ public class LBinaryDeserializerListsTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -137,7 +137,7 @@ public class LBinaryDeserializerListsTests
     {
         // Arrange
         serializer.Write((List<string>)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act

@@ -38,7 +38,7 @@ public class SerializerSmallObjectsBenchmarks
         
         // Serialize
         _rawData.Serialize(_serializer);
-        _lBinarySerializedData = _serializer.GetData();
+        _lBinarySerializedData = _serializer.ToArray();
         _serializer.Reset();
         
         Serializer.Serialize(_protobufStream, _rawData);
@@ -56,7 +56,7 @@ public class SerializerSmallObjectsBenchmarks
         for (int i = 0; i < N; i++)
         {
             _rawData!.Serialize(_serializer);
-            var bytes = _serializer.GetData();
+            var bytes = _serializer.ToArray();
             _serializer.Reset();
         }
     }

@@ -8,7 +8,7 @@ public class LBinaryDeserializerStringTests
     {
         // Arrange
         serializer.Write(string.Empty);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -24,7 +24,7 @@ public class LBinaryDeserializerStringTests
     {
         // Arrange
         serializer.Write((string)null);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -40,7 +40,7 @@ public class LBinaryDeserializerStringTests
     {
         // Arrange
         serializer.Write(value, EncodingType.ASCII);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -56,7 +56,7 @@ public class LBinaryDeserializerStringTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
         
         // Act
@@ -72,7 +72,7 @@ public class LBinaryDeserializerStringTests
     {
         // Arrange
         serializer.Write(value, EncodingType.UTF16);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
         
         // Act
@@ -88,7 +88,7 @@ public class LBinaryDeserializerStringTests
     {
         // Arrange
         serializer.Write(value, EncodingType.UTF32);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
         
         // Act

@@ -13,11 +13,11 @@ public class LBinarySerializerStringTests
 
         // Assert
         // Check the header
-        var length = BitConverter.ToInt32(serializer.GetData().Take(4).ToArray());
+        var length = BitConverter.ToInt32(serializer.ToArray().Take(4).ToArray());
         length.Should().Be(value.Length);
 
         // Check the string
-        serializer.GetData().Skip(4).Should().BeEquivalentTo(Encoding.UTF8.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.UTF8.GetBytes(value));
     }
 
 
@@ -30,11 +30,11 @@ public class LBinarySerializerStringTests
 
         // Assert
         // Check the header
-        var length = BitConverter.ToInt32(serializer.GetData().Take(4).ToArray());
+        var length = BitConverter.ToInt32(serializer.ToArray().Take(4).ToArray());
         length.Should().Be(value.Length);
 
         // Check the string
-        serializer.GetData().Skip(4).Should().BeEquivalentTo(Encoding.ASCII.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.ASCII.GetBytes(value));
     }
 
     [Theory]
@@ -49,11 +49,11 @@ public class LBinarySerializerStringTests
 
         // Assert
         // Check the header
-        var length = BitConverter.ToInt32(serializer.GetData().Take(4).ToArray());
+        var length = BitConverter.ToInt32(serializer.ToArray().Take(4).ToArray());
         length.Should().Be(Encoding.UTF8.GetByteCount(value));
 
         // Check the string
-        serializer.GetData().Skip(4).Should().BeEquivalentTo(Encoding.UTF8.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.UTF8.GetBytes(value));
     }
 
     [Theory]
@@ -66,11 +66,11 @@ public class LBinarySerializerStringTests
 
         // Assert
         // Check the header
-        var length = BitConverter.ToInt32(serializer.GetData().Take(4).ToArray());
+        var length = BitConverter.ToInt32(serializer.ToArray().Take(4).ToArray());
         length.Should().Be(Encoding.UTF32.GetByteCount(value));
 
         // Check the string
-        serializer.GetData().Skip(4).Should().BeEquivalentTo(Encoding.UTF32.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.UTF32.GetBytes(value));
     }
 
     [Theory]
@@ -83,10 +83,10 @@ public class LBinarySerializerStringTests
 
         // Assert
         // Check the header
-        var length = BitConverter.ToInt32(serializer.GetData().Take(4).ToArray());
+        var length = BitConverter.ToInt32(serializer.ToArray().Take(4).ToArray());
         length.Should().Be(Encoding.Unicode.GetByteCount(value));
 
         // Check the string
-        serializer.GetData().Skip(4).Should().BeEquivalentTo(Encoding.Unicode.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.Unicode.GetBytes(value));
     }
 }

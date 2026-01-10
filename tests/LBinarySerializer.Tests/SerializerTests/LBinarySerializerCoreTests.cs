@@ -16,7 +16,7 @@ public class LBinarySerializerCoreTests
         serializer.Write(value);
         
         // Assert
-        serializer.GetData().Should().HaveCount(expectedCount);
+        serializer.ToArray().Should().HaveCount(expectedCount);
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public class LBinarySerializerCoreTests
         // Arrange
         var value = new byte[Array.MaxLength - 3];
         var serializer = new LBinarySerializer(10);
-        serializer.Write(new[] { 1, 2, 3, 4 });
+        serializer.Write([1, 2, 3, 4]);
 
         // Act
         serializer.Invoking(x => x.Write(value)).Should().Throw<InvalidOperationException>()
