@@ -175,39 +175,6 @@ Supported structure types
 
 Performance tests and comparison
 ------------------------
-### .NET 8
-~~~
-BenchmarkDotNet v0.14.0, macOS Sequoia 15.5 (24F74) [Darwin 24.5.0]
-Apple M1 Max, 1 CPU, 10 logical and 10 physical cores
-.NET SDK 8.0.401
-  [Host]     : .NET 8.0.13 (8.0.1325.6609), Arm64 RyuJIT AdvSIMD
-  DefaultJob : .NET 8.0.13 (8.0.1325.6609), Arm64 RyuJIT AdvSIMD
-~~~
-
-#### Small objects
-
-| Method                     | Categories                | Mean      | Ratio | Gen0   | Allocated | Alloc Ratio |
-|--------------------------- |-------------------------- |----------:|------:|-------:|----------:|------------:|
-| LBinaryDeserializer        | Deserialize Small Objects |  49.34 ns |     ? | 0.0268 |     168 B |           ? |
-| ProtoBufDeserializer       | Deserialize Small Objects | 185.80 ns |     ? | 0.0267 |     168 B |           ? |
-| JsonSerializerDeserializer | Deserialize Small Objects | 157.23 ns |     ? | 0.0076 |      48 B |           ? |
-|                            |                           |           |       |        |           |             |
-| LBinarySerializer          | Serialize Small Objects   |  62.15 ns |  1.00 | 0.0280 |     176 B |        1.00 |
-| ProtoBufSerializer         | Serialize Small Objects   | 158.43 ns |  2.55 | 0.0165 |     104 B |        0.59 |
-| JsonSerializer             | Serialize Small Objects   | 201.34 ns |  3.24 | 0.0267 |     168 B |        0.95 |
-
-### Large objects
-
-| Method                     | Categories                | Mean       | Ratio | Gen0   | Gen1   | Allocated | Alloc Ratio |
-|--------------------------- |-------------------------- |-----------:|------:|-------:|-------:|----------:|------------:|
-| LBinaryDeserializer        | Deserialize Large Objects |   564.2 ns |     ? | 0.3071 | 0.0019 |    1928 B |           ? |
-| ProtoBufDeserializer       | Deserialize Large Objects | 1,516.1 ns |     ? | 0.2956 | 0.0019 |    1856 B |           ? |
-| JsonSerializerDeserializer | Deserialize Large Objects | 1,052.2 ns |     ? | 0.0172 |      - |     112 B |           ? |
-|                            |                           |            |       |        |        |           |             |
-| LBinarySerializer          | Serialize Large Objects   |   828.3 ns |  1.00 | 0.2632 |      - |    1656 B |        1.00 |
-| ProtoBufSerializer         | Serialize Large Objects   | 1,035.0 ns |  1.25 | 0.1144 |      - |     728 B |        0.44 |
-| JsonSerializer             | Serialize Large Objects   | 1,355.6 ns |  1.64 | 0.2365 |      - |    1488 B |        0.90 |
-
 ### .NET 10
 ~~~
 BenchmarkDotNet v0.15.6, macOS 26.1 (25B78) [Darwin 25.1.0]
@@ -221,15 +188,16 @@ Apple M1 Max, 1 CPU, 10 logical and 10 physical cores
 
 | Method                     | Categories                | N | Mean      | Ratio | RatioSD | Gen0   | Allocated | Alloc Ratio |
 |--------------------------- |-------------------------- |-- |----------:|------:|--------:|-------:|----------:|------------:|
-| MemoryPackSerializer       | Deserialize Small Objects | 1 |  35.18 ns |     ? |       ? | 0.0166 |     104 B |           ? |
-| LBinaryDeserializer        | Deserialize Small Objects | 1 |  41.22 ns |     ? |       ? | 0.0268 |     168 B |           ? |
-| ProtoBufDeserializer       | Deserialize Small Objects | 1 | 162.48 ns |     ? |       ? | 0.0267 |     168 B |           ? |
-| JsonSerializerDeserializer | Deserialize Small Objects | 1 | 153.48 ns |     ? |       ? | 0.0076 |      48 B |           ? |
-| MemoryPackDeserializer     | Deserialize Small Objects | 1 |  28.66 ns |     ? |       ? | 0.0268 |     168 B |           ? |
+| LBinaryDeserializer        | Deserialize Small Objects | 1 |  42.59 ns |  1.00 |    0.01 | 0.0268 |     168 B |        1.00 |
+| ProtoBufDeserializer       | Deserialize Small Objects | 1 | 164.02 ns |  3.85 |    0.02 | 0.0267 |     168 B |        1.00 |
+| JsonSerializerDeserializer | Deserialize Small Objects | 1 | 154.87 ns |  3.64 |    0.02 | 0.0076 |      48 B |        0.29 |
+| MemoryPackDeserializer     | Deserialize Small Objects | 1 |  29.24 ns |  0.69 |    0.00 | 0.0268 |     168 B |        1.00 |
 |                            |                           |   |           |       |         |        |           |             |
-| LBinarySerializer          | Serialize Small Objects   | 1 |  47.51 ns |  1.00 |    0.00 | 0.0280 |     176 B |        1.00 |
-| ProtoBufSerializer         | Serialize Small Objects   | 1 | 113.86 ns |  2.40 |    0.01 | 0.0166 |     104 B |        0.59 |
-| JsonSerializer             | Serialize Small Objects   | 1 | 148.89 ns |  3.13 |    0.01 | 0.0267 |     168 B |        0.95 |
+| LBinarySerializer          | Serialize Small Objects   | 1 |  33.23 ns |  1.00 |    0.00 | 0.0166 |     104 B |        1.00 |
+| ProtoBufSerializer         | Serialize Small Objects   | 1 | 115.43 ns |  3.47 |    0.02 | 0.0166 |     104 B |        1.00 |
+| JsonSerializer             | Serialize Small Objects   | 1 | 151.22 ns |  4.55 |    0.03 | 0.0267 |     168 B |        1.62 |
+| MemoryPackSerializer       | Serialize Small Objects   | 1 |  36.07 ns |  1.09 |    0.01 | 0.0166 |     104 B |        1.00 |
+
 
 #### Large objects
 

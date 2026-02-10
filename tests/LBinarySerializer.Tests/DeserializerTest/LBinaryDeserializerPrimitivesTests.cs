@@ -8,7 +8,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(true);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -23,7 +23,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_BoolOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
         
         // Act
@@ -40,7 +40,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -56,7 +56,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         var defaultValue = default(byte);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -73,7 +73,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -88,7 +88,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         var serializer = new LBinarySerializer(1);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -103,7 +103,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_UInt32_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -119,7 +119,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -135,7 +135,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -150,7 +150,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_ShortOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -165,7 +165,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_UShort_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -181,7 +181,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -196,7 +196,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_ULong_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -212,7 +212,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -227,7 +227,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_Float_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -243,7 +243,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -258,7 +258,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_Double_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -274,7 +274,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -289,7 +289,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_Decimal_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -305,7 +305,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -320,7 +320,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_HalfOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -336,7 +336,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -351,7 +351,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_Guid_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -367,7 +367,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -382,7 +382,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_DateTime_ShouldReturnMinDateTime(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -399,7 +399,7 @@ public class LBinaryDeserializerPrimitivesTests
         // Arrange
         var localTime = new DateTime(2025, 05, 12, 0, 0, 0, DateTimeKind.Unspecified);
         serializer.Write(localTime);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -417,7 +417,7 @@ public class LBinaryDeserializerPrimitivesTests
         // Arrange
         var localTime = new DateTime(2025, 05, 12, 0, 0, 0, DateTimeKind.Local);
         serializer.Write(localTime);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -435,7 +435,7 @@ public class LBinaryDeserializerPrimitivesTests
         // Arrange
         var localTime = new DateTime(2025, 05, 12, 0, 0, 0, DateTimeKind.Utc);
         serializer.Write(localTime);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -453,7 +453,7 @@ public class LBinaryDeserializerPrimitivesTests
         // Arrange
         var dateTimeOffset = new DateTimeOffset(2025, 5, 12, 0, 0, 0, TimeSpan.FromHours(2));
         serializer.Write(dateTimeOffset);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -482,7 +482,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_TimeSpan_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -498,7 +498,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -513,7 +513,7 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_CharOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -529,7 +529,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.Write(value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -545,7 +545,7 @@ public class LBinaryDeserializerPrimitivesTests
     {
         // Arrange
         serializer.WriteEnum( value);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
@@ -560,13 +560,60 @@ public class LBinaryDeserializerPrimitivesTests
     public void Deserialize_EnumOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
     {
         // Arrange
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
         var result = deserializer.ReadEnum<DummyEnum>();
 
         // Assert
-        result.Should().Be(DummyEnum.Value1);    
+        result.Should().Be(DummyEnum.Value1);
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_Bool_ShouldReturnFalse(LBinarySerializer serializer)
+    {
+        // Arrange
+        serializer.Write(false);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadBool();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_Long_ShouldReturnValue(LBinarySerializer serializer, long value)
+    {
+        // Arrange
+        serializer.Write(value);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadLong();
+
+        // Assert
+        result.Should().Be(value);
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_LongOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
+    {
+        // Arrange
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadLong();
+
+        // Assert
+        result.Should().Be(0);
     }
 }

@@ -18,10 +18,7 @@ public class LBinarySerializer : IDisposable
     private const int DoubleSize = sizeof(double);
     private const int DecimalSize = sizeof(decimal);
 
-    private readonly byte[] _true = [0b1];
-    private readonly byte[] _false = [0b0];
     private readonly int[] _objectDepthSizes = new int[SerializerSettings.MaxDepthSize];
-    private readonly byte[] _cached4Bytes = new byte[4];
     private byte[] _internalBuffer;
     private int _offset;
     private int _level;
@@ -52,7 +49,7 @@ public class LBinarySerializer : IDisposable
 
     public void Write(bool value)
     {
-        WriteToStream(value ? _true : _false);
+        WriteOneByte(value ? (byte)1 : (byte)0);
     }
 
     public void Write(byte value)
@@ -140,15 +137,10 @@ public class LBinarySerializer : IDisposable
 
     public void Write(decimal value)
     {
+        Span<int> bits = stackalloc int[4];
+        decimal.GetBits(value, bits);
         Span<byte> buffer = stackalloc byte[DecimalSize];
-        var bits = decimal.GetBits(value);
-
-        for (var i = 0; i < bits.Length; i++)
-        {
-            var bytes = BitConverter.GetBytes(bits[i]);
-            bytes.CopyTo(buffer.Slice(i * IntSize));
-        }
-
+        MemoryMarshal.Cast<int, byte>(bits).CopyTo(buffer);
         WriteToStream(buffer);
     }
 
@@ -161,7 +153,11 @@ public class LBinarySerializer : IDisposable
 
     public void Write(Guid value)
     {
-        Write(value.ToByteArray());
+        const int guidSize = 16;
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, guidSize);
+        value.TryWriteBytes(_internalBuffer.AsSpan(_offset, guidSize));
+        _offset += guidSize;
+        _objectDepthSizes[_level] += guidSize;
     }
 
     public void Write(DateTime value)
@@ -188,8 +184,10 @@ public class LBinarySerializer : IDisposable
 
     public void WriteEnum<TEnum>(TEnum value) where TEnum : struct, Enum
     {
-        MemoryMarshal.Write(_cached4Bytes, in value);
-        WriteToStream(_cached4Bytes);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, IntSize);
+        MemoryMarshal.Write(_internalBuffer.AsSpan(_offset, IntSize), in value);
+        _offset += IntSize;
+        _objectDepthSizes[_level] += IntSize;
     }
 
     #endregion
@@ -214,7 +212,10 @@ public class LBinarySerializer : IDisposable
             case EncodingType.UTF8:
                 stringSize = Encoding.UTF8.GetByteCount(value);
                 Write(stringSize);
-                WriteToStream(Encoding.UTF8.GetBytes(value));
+                BufferPool.EnsureCapacity(ref _internalBuffer, _offset, stringSize);
+                Encoding.UTF8.GetBytes(value, _internalBuffer.AsSpan(_offset, stringSize));
+                _offset += stringSize;
+                _objectDepthSizes[_level] += stringSize;
                 break;
             case EncodingType.ASCII:
                 stringSize = value.Length;
@@ -243,7 +244,10 @@ public class LBinarySerializer : IDisposable
             case EncodingType.UTF32:
                 stringSize = Encoding.UTF32.GetByteCount(value);
                 Write(stringSize);
-                WriteToStream(Encoding.UTF32.GetBytes(value));
+                BufferPool.EnsureCapacity(ref _internalBuffer, _offset, stringSize);
+                Encoding.UTF32.GetBytes(value, _internalBuffer.AsSpan(_offset, stringSize));
+                _offset += stringSize;
+                _objectDepthSizes[_level] += stringSize;
                 break;
             default:
                 throw new NotImplementedException();
@@ -285,22 +289,12 @@ public class LBinarySerializer : IDisposable
     /// <typeparam name="T"></typeparam>
     public void WriteStructure<T>(T value) where T : unmanaged
     {
-        var bufferSize = Marshal.SizeOf(value);
-        var buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-        var ptr = Marshal.AllocHGlobal(bufferSize);
-
-        try
-        {
-            Marshal.StructureToPtr(value, ptr, true);
-            Marshal.Copy(ptr, buffer, 0, bufferSize);
-            Write(bufferSize); // Write size
-            WriteToStream(buffer, _offset, bufferSize, true); // Write data
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ptr);
-            ArrayPool<byte>.Shared.Return(buffer);
-        }
+        var size = Unsafe.SizeOf<T>();
+        Write(size);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, size);
+        Unsafe.WriteUnaligned(ref _internalBuffer[_offset], value);
+        _offset += size;
+        _objectDepthSizes[_level] += size;
     }
 
     #region Arrays
@@ -537,7 +531,7 @@ public class LBinarySerializer : IDisposable
 
     #endregion
 
-    public byte[] GetData()
+    public byte[] ToArray()
     {
         if (_offset == 0)
         {
@@ -547,6 +541,11 @@ public class LBinarySerializer : IDisposable
         var destination = GC.AllocateUninitializedArray<byte>(_offset);
         Array.Copy(_internalBuffer, 0, destination, 0, _offset);
         return destination;
+    }
+
+    public ReadOnlyMemory<byte> ToMemory()
+    {
+        return _internalBuffer.AsMemory(0, _offset);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

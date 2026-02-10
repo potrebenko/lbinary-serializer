@@ -8,7 +8,7 @@ public class LBinaryDeserializerBackwardCompatibilityTests
     {
         // Arrange
         value.Serialize(serializer);
-        var data = serializer.GetData();
+        var data = serializer.ToArray();
         var deserializer = new LBinaryDeserializer(data);
 
         // Act

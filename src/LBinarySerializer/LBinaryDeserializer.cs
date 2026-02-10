@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -101,27 +102,19 @@ public class LBinaryDeserializer
         return result;
     }
 
-    public unsafe T ReadStruct<T>() where T : struct
+    public T ReadStruct<T>() where T : struct
     {
         var length = ReadInt();
 
-        if (length == 0)
+        if (length == 0 || !CanReadBytesForCurrentLevel(length))
         {
             return default;
         }
 
-        if (!CanReadBytesForCurrentLevel(length))
-        {
-            return default;
-        }
-
-        fixed (byte* ptr = &_serializedData[_offset])
-        {
-            var value = (T)Marshal.PtrToStructure((IntPtr)ptr, typeof(T))!;
-            _offset += length;
-            _objectDepthSizes[_level] -= length;
-            return value;
-        }
+        var value = Unsafe.ReadUnaligned<T>(ref _serializedData[_offset]);
+        _offset += length;
+        _objectDepthSizes[_level] -= length;
+        return value;
     }
 
     #region Premitives
@@ -133,7 +126,7 @@ public class LBinaryDeserializer
             return false; // Return default value
         }
 
-        var value = BitConverter.ToBoolean(_serializedData, _offset);
+        var value = _serializedData[_offset] != 0;
         _offset++;
         _objectDepthSizes[_level] -= 1;
         return value;
@@ -159,7 +152,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToInt32(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadInt32LittleEndian(_serializedData.AsSpan(_offset, IntSize));
         _offset += IntSize;
         _objectDepthSizes[_level] -= IntSize;
         return value;
@@ -172,7 +165,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToUInt32(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadUInt32LittleEndian(_serializedData.AsSpan(_offset, IntSize));
         _offset += IntSize;
         _objectDepthSizes[_level] -= IntSize;
         return value;
@@ -185,7 +178,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToInt16(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadInt16LittleEndian(_serializedData.AsSpan(_offset, ShortSize));
         _offset += ShortSize;
         _objectDepthSizes[_level] -= ShortSize;
         return value;
@@ -198,7 +191,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToUInt16(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadUInt16LittleEndian(_serializedData.AsSpan(_offset, ShortSize));
         _offset += ShortSize;
         _objectDepthSizes[_level] -= ShortSize;
         return value;
@@ -211,7 +204,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToInt64(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadInt64LittleEndian(_serializedData.AsSpan(_offset, LongSize));
         _offset += LongSize;
         _objectDepthSizes[_level] -= LongSize;
         return value;
@@ -224,7 +217,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToUInt64(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadUInt64LittleEndian(_serializedData.AsSpan(_offset, LongSize));
         _offset += LongSize;
         _objectDepthSizes[_level] -= LongSize;
         return value;
@@ -237,7 +230,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToSingle(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadSingleLittleEndian(_serializedData.AsSpan(_offset, FloatSize));
         _offset += FloatSize;
         _objectDepthSizes[_level] -= FloatSize;
         return value;
@@ -250,7 +243,7 @@ public class LBinaryDeserializer
             return 0; // Return default value
         }
 
-        var value = BitConverter.ToDouble(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadDoubleLittleEndian(_serializedData.AsSpan(_offset, DoubleSize));
         _offset += DoubleSize;
         _objectDepthSizes[_level] -= DoubleSize;
         return value;
@@ -263,10 +256,12 @@ public class LBinaryDeserializer
             return 0m; // Return default value
         }
 
-        for (int i = 0; i < 4; i++)
-        {
-            _decimalBuffer[i] = BitConverter.ToInt32(_serializedData, _offset + i * 4);
-        }
+        var span = _serializedData.AsSpan(_offset, DecimalSize);
+        var ints = MemoryMarshal.Cast<byte, int>(span);
+        _decimalBuffer[0] = ints[0];
+        _decimalBuffer[1] = ints[1];
+        _decimalBuffer[2] = ints[2];
+        _decimalBuffer[3] = ints[3];
 
         _offset += DecimalSize;
         _objectDepthSizes[_level] -= DecimalSize;
@@ -280,7 +275,7 @@ public class LBinaryDeserializer
             return Half.Zero; // Return default value
         }
 
-        var value = BitConverter.ToHalf(_serializedData, _offset);
+        var value = BinaryPrimitives.ReadHalfLittleEndian(_serializedData.AsSpan(_offset, ShortSize));
         _offset += ShortSize;
         _objectDepthSizes[_level] -= ShortSize;
         return value;
@@ -461,16 +456,16 @@ public class LBinaryDeserializer
         }
 
         var list = new List<T?>(length);
-        var size = Unsafe.SizeOf<T>();
 
+        var dataSize = Unsafe.SizeOf<T>() * length;
+        var items = MemoryMarshal.Cast<byte, T>(_serializedData.AsSpan(_offset, dataSize));
         for (var i = 0; i < length; i++)
         {
-            var span = _serializedData.AsSpan(_offset, size);
-            var value = MemoryMarshal.Read<T>(span);
-            list.Add(value);
-            _offset += size;
-            _objectDepthSizes[_level] -= size;
+            list.Add(items[i]);
         }
+
+        _offset += dataSize;
+        _objectDepthSizes[_level] -= dataSize;
 
         return list;
     }
@@ -607,6 +602,7 @@ public class LBinaryDeserializer
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool CanReadBytesForCurrentLevel(int size)
     {
         if (_level == RootLevel && _offset + size <= _serializedData.Length)
