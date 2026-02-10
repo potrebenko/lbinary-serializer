@@ -198,17 +198,16 @@ Apple M1 Max, 1 CPU, 10 logical and 10 physical cores
 | JsonSerializer             | Serialize Small Objects   | 1 | 151.22 ns |  4.55 |    0.03 | 0.0267 |     168 B |        1.62 |
 | MemoryPackSerializer       | Serialize Small Objects   | 1 |  36.07 ns |  1.09 |    0.01 | 0.0166 |     104 B |        1.00 |
 
-
 #### Large objects
 
 | Method                     | Categories                | N | Mean       | Ratio | RatioSD | Gen0   | Gen1   | Allocated | Alloc Ratio |
 |--------------------------- |-------------------------- |-- |-----------:|------:|--------:|-------:|-------:|----------:|------------:|
-| LBinaryDeserializer        | Deserialize Large Objects | 1 |   493.3 ns |     ? |       ? | 0.3071 | 0.0019 |    1928 B |           ? |
-| ProtoBufDeserializer       | Deserialize Large Objects | 1 | 1,271.2 ns |     ? |       ? | 0.2956 | 0.0019 |    1856 B |           ? |
-| JsonSerializerDeserializer | Deserialize Large Objects | 1 |   996.9 ns |     ? |       ? | 0.0172 |      - |     112 B |           ? |
-| MemoryPackDeserializer     | Deserialize Large Objects | 1 |   327.4 ns |     ? |       ? | 0.2956 | 0.0010 |    1856 B |           ? |
+| LBinaryDeserializer        | Deserialize Large Objects | 1 |   457.8 ns |  1.00 |    0.01 | 0.2956 | 0.0014 |    1856 B |        1.00 |
+| ProtoBufDeserializer       | Deserialize Large Objects | 1 | 1,340.2 ns |  2.93 |    0.03 | 0.2956 | 0.0019 |    1856 B |        1.00 |
+| JsonSerializerDeserializer | Deserialize Large Objects | 1 | 1,031.4 ns |  2.25 |    0.02 | 0.0172 |      - |     112 B |        0.06 |
+| MemoryPackDeserializer     | Deserialize Large Objects | 1 |   335.2 ns |  0.73 |    0.01 | 0.2956 | 0.0010 |    1856 B |        1.00 |
 |                            |                           |   |            |       |         |        |        |           |             |
-| LBinarySerializer          | Serialize Large Objects   | 1 |   672.7 ns |  1.00 |    0.00 | 0.2632 |      - |    1656 B |        1.00 |
-| ProtoBufSerializer         | Serialize Large Objects   | 1 |   775.2 ns |  1.15 |    0.00 | 0.1154 |      - |     728 B |        0.44 |
-| JsonSerializer             | Serialize Large Objects   | 1 | 1,054.8 ns |  1.57 |    0.00 | 0.2365 |      - |    1488 B |        0.90 |
-| MemoryPackSerializer       | Serialize Large Objects   | 1 |   215.9 ns |  0.32 |    0.00 | 0.1185 |      - |     744 B |        0.45 |
+| LBinarySerializer          | Serialize Large Objects   | 1 |   347.4 ns |  1.00 |    0.01 | 0.1273 |      - |     800 B |        1.00 |
+| ProtoBufSerializer         | Serialize Large Objects   | 1 |   787.5 ns |  2.27 |    0.02 | 0.1154 |      - |     728 B |        0.91 |
+| JsonSerializer             | Serialize Large Objects   | 1 | 1,055.5 ns |  3.04 |    0.02 | 0.2365 |      - |    1488 B |        1.86 |
+| MemoryPackSerializer       | Serialize Large Objects   | 1 |   222.3 ns |  0.64 |    0.00 | 0.1183 |      - |     744 B |        0.93 |
