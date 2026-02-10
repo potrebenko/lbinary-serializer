@@ -35,7 +35,7 @@ public static class Converter
     {
         using var serializer = new LBinarySerializer();
         object.Serialize(serializer);
-        return serializer.GetData();
+        return serializer.ToArray();
     }
 
     public static T Deserialize<T>(byte[] rawData) where T : class, ILBinarySerializable, new()
