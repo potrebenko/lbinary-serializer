@@ -243,4 +243,46 @@ public class LBinarySerializerPrimitivesTests
         serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(short));
     }
+
+    [Theory]
+    [AutoData]
+    public void Write_DateTimeOffset_ShouldContainValue(LBinarySerializer serializer)
+    {
+        // Arrange
+        var value = new DateTimeOffset(2025, 5, 12, 10, 30, 0, TimeSpan.FromHours(3));
+        var expectedLength = sizeof(long) + sizeof(long); // Ticks + Offset.Ticks
+
+        // Act
+        serializer.Write(value);
+
+        // Assert
+        serializer.ToArray().Take(8).Should().BeEquivalentTo(BitConverter.GetBytes(value.Ticks));
+        serializer.ToArray().Should().HaveCount(expectedLength);
+    }
+
+    [Theory]
+    [AutoNSubstituteData]
+    public void Write_Enum_ShouldContainValue(LBinarySerializer serializer, DummyEnum value)
+    {
+        // Act
+        serializer.WriteEnum(value);
+
+        // Assert
+        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes((int)value));
+        serializer.ToArray().Should().HaveCount(sizeof(int));
+    }
+
+    [Theory]
+    [AutoNSubstituteData]
+    public void Write_Structure_ShouldContainValue(LBinarySerializer serializer, DummyStruct value)
+    {
+        // Act
+        serializer.WriteStructure(value);
+
+        // Assert
+        var result = serializer.ToArray();
+        var sizeHeader = BitConverter.ToInt32(result.Take(4).ToArray());
+        sizeHeader.Should().Be(System.Runtime.CompilerServices.Unsafe.SizeOf<DummyStruct>());
+        result.Should().HaveCount(sizeof(int) + System.Runtime.CompilerServices.Unsafe.SizeOf<DummyStruct>());
+    }
 }

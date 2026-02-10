@@ -212,5 +212,102 @@ public class LBinaryDeserializerArraysTests
         // Assert
         result.Should().BeEquivalentTo(value);
     }
+
+    [Theory]
+    [AutoData]
+    public void ReadArray_ByteArray_ShouldReturnArray(LBinarySerializer serializer, byte[] value)
+    {
+        // Arrange
+        serializer.Write(value, false);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadArrayOf<byte>();
+
+        // Assert
+        result.Should().BeEquivalentTo(value);
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadArray_LongArray_ShouldReturnArray(LBinarySerializer serializer, long[] value)
+    {
+        // Arrange
+        serializer.Write(value);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadArrayOf<long>();
+
+        // Assert
+        result.Should().BeEquivalentTo(value);
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadArray_FloatArray_ShouldReturnArray(LBinarySerializer serializer, float[] value)
+    {
+        // Arrange
+        serializer.Write(value);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadArrayOf<float>();
+
+        // Assert
+        result.Should().BeEquivalentTo(value);
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadArray_EmptySerializableArray_ShouldReturnEmptyArray(LBinarySerializer serializer)
+    {
+        // Arrange
+        serializer.Write(Array.Empty<DummyNestedClass>());
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadArrayOf<DummyNestedClass>();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadArray_EmptyIntArray_ShouldReturnEmptyArray(LBinarySerializer serializer)
+    {
+        // Arrange
+        serializer.Write(Array.Empty<int>());
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadArrayOf<int>();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadArray_EmptyStringArray_ShouldReturnEmptyArray(LBinarySerializer serializer)
+    {
+        // Arrange
+        serializer.Write(Array.Empty<string>());
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadArrayOfStrings();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
     #endregion
 }

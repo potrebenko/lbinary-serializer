@@ -84,7 +84,7 @@ public class SerializerSmallObjectsBenchmarks
     }
 
     [Benchmark(Description = "MemoryPackSerializer")]
-    [BenchmarkCategory(BenchmarkCategories.DeserializeSmall)]
+    [BenchmarkCategory(BenchmarkCategories.SerializeSmall)]
     public void MemoryPackSerialize()
     {
         for (int i = 0; i < N; i++)
@@ -93,7 +93,7 @@ public class SerializerSmallObjectsBenchmarks
         }
     }
 
-    [Benchmark(Description = "LBinaryDeserializer")]
+    [Benchmark(Baseline = true, Description = "LBinaryDeserializer")]
     [BenchmarkCategory(BenchmarkCategories.DeserializeSmall)]
     public void LBinaryDeserializer()
     {

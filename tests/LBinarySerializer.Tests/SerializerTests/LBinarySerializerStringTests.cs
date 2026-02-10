@@ -89,4 +89,30 @@ public class LBinarySerializerStringTests
         // Check the string
         serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.Unicode.GetBytes(value));
     }
+
+    [Theory]
+    [AutoData]
+    public void Write_NullString_ShouldContainNullMarker(LBinarySerializer serializer)
+    {
+        // Act
+        serializer.Write((string)null);
+
+        // Assert
+        var result = BitConverter.ToInt32(serializer.ToArray());
+        result.Should().Be(-1);
+        serializer.ToArray().Should().HaveCount(sizeof(int));
+    }
+
+    [Theory]
+    [AutoData]
+    public void Write_EmptyString_ShouldContainZeroLength(LBinarySerializer serializer)
+    {
+        // Act
+        serializer.Write(string.Empty);
+
+        // Assert
+        var result = BitConverter.ToInt32(serializer.ToArray());
+        result.Should().Be(0);
+        serializer.ToArray().Should().HaveCount(sizeof(int));
+    }
 }

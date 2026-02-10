@@ -78,4 +78,44 @@ public class LBinaryDeserializerObjectsTests
         // Assert
         result.Should().Be(value);
     }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_NullNestedObject_ShouldReturnNull(DummyBaseClass value)
+    {
+        // Arrange
+        value.Dummy = null;
+        var serializer = new LBinarySerializer();
+        value.Serialize(serializer);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.Deserialize<DummyBaseClass>()!;
+
+        // Assert
+        result.Dummy.Should().BeNull();
+        result.Name.Should().Be(value.Name);
+        result.Age.Should().Be(value.Age);
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_WithByteArrayOverload_ShouldReturnValue(DummyNestedClass value)
+    {
+        // Arrange
+        var serializer = new LBinarySerializer();
+        value.Serialize(serializer);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer();
+
+        // Act
+        var result = deserializer.Deserialize<DummyNestedClass>(data);
+
+        // Assert
+        result!.Name.Should().Be(value.Name);
+        result.Age.Should().Be(value.Age);
+        result.IsAdmin.Should().Be(value.IsAdmin);
+        result.Guid.Should().Be(value.Guid);
+    }
 }

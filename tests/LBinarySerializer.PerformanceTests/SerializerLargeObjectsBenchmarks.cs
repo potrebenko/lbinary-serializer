@@ -93,7 +93,7 @@ public class SerializerLargeObjectsBenchmarks
         }
     }
 
-    [Benchmark(Description = "LBinaryDeserializer")]
+    [Benchmark(Baseline = true, Description = "LBinaryDeserializer")]
     [BenchmarkCategory(BenchmarkCategories.DeserializeLarge)]
     public void LBinaryDeserializer()
     {

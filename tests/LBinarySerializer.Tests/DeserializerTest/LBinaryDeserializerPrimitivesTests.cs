@@ -567,6 +567,53 @@ public class LBinaryDeserializerPrimitivesTests
         var result = deserializer.ReadEnum<DummyEnum>();
 
         // Assert
-        result.Should().Be(DummyEnum.Value1);    
+        result.Should().Be(DummyEnum.Value1);
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_Bool_ShouldReturnFalse(LBinarySerializer serializer)
+    {
+        // Arrange
+        serializer.Write(false);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadBool();
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_Long_ShouldReturnValue(LBinarySerializer serializer, long value)
+    {
+        // Arrange
+        serializer.Write(value);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadLong();
+
+        // Assert
+        result.Should().Be(value);
+    }
+
+    [Theory]
+    [AutoData]
+    public void Deserialize_LongOutOfRange_ShouldReturnDefaultValue(LBinarySerializer serializer)
+    {
+        // Arrange
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadLong();
+
+        // Assert
+        result.Should().Be(0);
     }
 }

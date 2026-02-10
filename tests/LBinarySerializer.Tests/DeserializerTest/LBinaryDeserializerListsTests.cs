@@ -141,8 +141,74 @@ public class LBinaryDeserializerListsTests
         var deserializer = new LBinaryDeserializer(data);
 
         // Act
-        var result = deserializer.ReadListOfStrings();        
-        
+        var result = deserializer.ReadListOfStrings();
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadList_StringNullItem_ShouldReturnList(LBinarySerializer serializer, List<string> value)
+    {
+        // Arrange
+        value[0] = null;
+        serializer.Write(value);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadListOfStrings();
+
+        // Assert
+        result.Should().BeEquivalentTo(value);
+    }
+
+    #endregion
+
+    #region Unmanaged primitives
+
+    [Theory]
+    [AutoData]
+    public void ReadList_IntList_ShouldReturnList(LBinarySerializer serializer, List<int> value)
+    {
+        // Arrange
+        serializer.Write(value);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadListOf<int>();
+
+        // Assert
+        result.Should().BeEquivalentTo(value);
+    }
+
+    [Fact]
+    public void ReadList_IntListEmpty_ShouldReturnEmptyList()
+    {
+        // Arrange
+        var deserializer = new LBinaryDeserializer();
+
+        // Act
+        var result = deserializer.ReadListOf<int>();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [AutoData]
+    public void ReadList_IntListNull_ShouldReturnNull(LBinarySerializer serializer)
+    {
+        // Arrange
+        serializer.Write((List<int>)null);
+        var data = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(data);
+
+        // Act
+        var result = deserializer.ReadListOf<int>();
+
         // Assert
         result.Should().BeNull();
     }
