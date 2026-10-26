@@ -15,7 +15,7 @@ internal class BufferPool
 
     internal static void EnsureCapacity(ref byte[] buffer, int offset, int length)
     {
-        var desireSize = offset + length;
+        var desireSize = (long)offset + length;
         if (desireSize > buffer.Length)
         {
             if (desireSize > Array.MaxLength)
@@ -29,9 +29,9 @@ internal class BufferPool
             if (offset > 0)
             {
                 Buffer.BlockCopy(buffer, 0, newBuffer, 0, offset);
-                ReleaseToPool(ref buffer);
             }
 
+            ReleaseToPool(ref buffer);
             buffer = newBuffer;
         }
     }
@@ -46,12 +46,7 @@ internal class BufferPool
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int CalculateNewCapacity(int bufferLength, int length)
     {
-        var newCapacity = Math.Max(bufferLength * 2, bufferLength + length);
-        if ((uint)newCapacity > Array.MaxLength)
-        {
-            newCapacity = Math.Min(newCapacity, Array.MaxLength);
-        }
-
-        return newCapacity;
+        var newCapacity = Math.Max((long)bufferLength * 2, (long)bufferLength + length);
+        return (int)Math.Min(newCapacity, Array.MaxLength);
     }
 }

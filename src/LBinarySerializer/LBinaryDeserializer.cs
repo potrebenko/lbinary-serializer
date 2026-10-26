@@ -46,10 +46,14 @@ public class LBinaryDeserializer
 
     public T? Deserialize<T>() where T : class, ILBinarySerializable, new()
     {
-        var value = new T();
         var objectSize = 0;
         if (_scope > 0)
         {
+            if (RemainingBytes == 0)
+            {
+                return null;
+            }
+
             objectSize = ReadInt();
 
             if (objectSize == ObjectValue.Null)
@@ -57,10 +61,17 @@ public class LBinaryDeserializer
                 return null;
             }
 
+            EnsureAvailable(objectSize);
+            if (_level + 1 >= _objectDepthSizes.Length)
+            {
+                throw new InvalidDataException("The maximum object nesting depth was exceeded.");
+            }
+
             _level++;
             _objectDepthSizes[_level] = objectSize;
         }
 
+        var value = new T();
         _scope++;
         value.Deserialize<T>(this);
         _scope--;
@@ -88,12 +99,14 @@ public class LBinaryDeserializer
                 return string.Empty;
         }
 
+        EnsureAvailable(length);
+        var span = _serializedData.AsSpan(_offset, length);
         var result = encoding switch
         {
-            EncodingType.UTF8 => ReadUnmanagedString(_serializedData, _offset, length, Encoding.UTF8),
-            EncodingType.ASCII => ReadUnmanagedString(_serializedData, _offset, length, Encoding.ASCII),
-            EncodingType.UTF16 => ReadUnmanagedString(_serializedData, _offset, length, Encoding.Unicode),
-            EncodingType.UTF32 => ReadUnmanagedString(_serializedData, _offset, length, Encoding.UTF32),
+            EncodingType.UTF8 => Encoding.UTF8.GetString(span),
+            EncodingType.ASCII => Encoding.ASCII.GetString(span),
+            EncodingType.UTF16 => Encoding.Unicode.GetString(span),
+            EncodingType.UTF32 => Encoding.UTF32.GetString(span),
             _ => throw new NotImplementedException()
         };
 
@@ -102,16 +115,22 @@ public class LBinaryDeserializer
         return result;
     }
 
-    public T ReadStruct<T>() where T : struct
+    public T ReadStruct<T>() where T : unmanaged
     {
         var length = ReadInt();
 
-        if (length == 0 || !CanReadBytesForCurrentLevel(length))
+        if (length == 0)
         {
             return default;
         }
 
-        var value = Unsafe.ReadUnaligned<T>(ref _serializedData[_offset]);
+        if (length != Unsafe.SizeOf<T>())
+        {
+            throw new InvalidDataException("The serialized structure size does not match the requested type.");
+        }
+
+        EnsureAvailable(length);
+        var value = MemoryMarshal.Read<T>(_serializedData.AsSpan(_offset, length));
         _offset += length;
         _objectDepthSizes[_level] -= length;
         return value;
@@ -341,6 +360,11 @@ public class LBinaryDeserializer
 
     public TEnum ReadEnum<TEnum>() where TEnum : unmanaged, Enum
     {
+        if (Unsafe.SizeOf<TEnum>() > IntSize)
+        {
+            throw new NotSupportedException("Enums with 64-bit underlying types are not supported by the four-byte format.");
+        }
+
         if (!CanReadBytesForCurrentLevel(IntSize))
         {
             return default; // Return default value
@@ -349,7 +373,7 @@ public class LBinaryDeserializer
         var span = _serializedData.AsSpan(_offset, IntSize);
         _offset += IntSize;
         _objectDepthSizes[_level] -= IntSize;
-        return Unsafe.ReadUnaligned<TEnum>(ref MemoryMarshal.GetReference(span));
+        return MemoryMarshal.Read<TEnum>(span);
     }
 
     #endregion
@@ -367,9 +391,11 @@ public class LBinaryDeserializer
                 return [];
         }
 
+        ValidateCollectionSize(length, IntSize);
         var array = new T?[length];
         for (var i = 0; i < length; i++)
         {
+            EnsureAvailable(IntSize);
             _scope++;
             array[i] = Deserialize<T>();
             _scope--;
@@ -389,7 +415,7 @@ public class LBinaryDeserializer
                 return [];
         }
 
-        var dataSize = Unsafe.SizeOf<T>() * length;
+        var dataSize = ValidateCollectionSize(length, Unsafe.SizeOf<T>());
         var span = new ReadOnlySpan<byte>(_serializedData, _offset, dataSize);
         _offset += dataSize;
         _objectDepthSizes[_level] -= dataSize;
@@ -409,9 +435,11 @@ public class LBinaryDeserializer
                 return [];
         }
 
+        ValidateCollectionSize(length, IntSize);
         var array = new string?[length];
         for (var i = 0; i < length; i++)
         {
+            EnsureAvailable(IntSize);
             array[i] = ReadString(encodingType);
         }
 
@@ -433,9 +461,11 @@ public class LBinaryDeserializer
                 return new List<T?>();
         }
 
+        ValidateCollectionSize(length, IntSize);
         var list = new List<T?>(length);
         for (var i = 0; i < length; i++)
         {
+            EnsureAvailable(IntSize);
             _scope++;
             list.Add(Deserialize<T>());
             _scope--;
@@ -455,9 +485,8 @@ public class LBinaryDeserializer
                 return new List<T?>();
         }
 
+        var dataSize = ValidateCollectionSize(length, Unsafe.SizeOf<T>());
         var list = new List<T?>(length);
-
-        var dataSize = Unsafe.SizeOf<T>() * length;
         var items = MemoryMarshal.Cast<byte, T>(_serializedData.AsSpan(_offset, dataSize));
         for (var i = 0; i < length; i++)
         {
@@ -481,9 +510,11 @@ public class LBinaryDeserializer
                 return new List<string?>();
         }
 
+        ValidateCollectionSize(length, IntSize);
         var list = new List<string?>(length);
         for (var i = 0; i < length; i++)
         {
+            EnsureAvailable(IntSize);
             list.Add(ReadString(encodingType));
         }
 
@@ -507,10 +538,13 @@ public class LBinaryDeserializer
                 return new Dictionary<T, TV?>();
         }
 
+        ValidateCollectionSize(length, 2 * IntSize);
         var dictionary = new Dictionary<T, TV?>(length);
         for (var i = 0; i < length; i++)
         {
+            EnsureAvailable(IntSize);
             var key = ReadStruct<T>();
+            EnsureAvailable(IntSize);
             _scope++;
             var value = Deserialize<TV>();
             _scope--;
@@ -532,10 +566,13 @@ public class LBinaryDeserializer
                 return new Dictionary<string, T?>(StringComparer.Ordinal);
         }
 
+        ValidateCollectionSize(length, 2 * IntSize);
         var dictionary = new Dictionary<string, T?>(length, _stringComparer);
         for (var i = 0; i < length; i++)
         {
-            var key = ReadString(EncodingType.ASCII)!;
+            EnsureAvailable(IntSize);
+            var key = ReadString()!;
+            EnsureAvailable(IntSize);
             _scope++;
             var value = Deserialize<T>();
             _scope--;
@@ -557,10 +594,13 @@ public class LBinaryDeserializer
                 return new Dictionary<string, T>();
         }
 
+        ValidateCollectionSize(length, 2 * IntSize);
         var dictionary = new Dictionary<string, T>(length, _stringComparer);
         for (var i = 0; i < length; i++)
         {
-            var key = ReadString(EncodingType.ASCII)!;
+            EnsureAvailable(IntSize);
+            var key = ReadString()!;
+            EnsureAvailable(IntSize);
             var value = ReadStruct<T>();
             dictionary.Add(key, value);
         }
@@ -580,10 +620,13 @@ public class LBinaryDeserializer
                 return new Dictionary<T, string?>();
         }
 
+        ValidateCollectionSize(length, 2 * IntSize);
         var dictionary = new Dictionary<T, string?>(length);
         for (var i = 0; i < length; i++)
         {
+            EnsureAvailable(IntSize);
             var key = ReadStruct<T>();
+            EnsureAvailable(IntSize);
             var value = ReadString(encodingType);
             dictionary.Add(key, value);
         }
@@ -593,29 +636,39 @@ public class LBinaryDeserializer
 
     #endregion
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe string ReadUnmanagedString(byte[] data, int offset, int length, Encoding encoding)
+    private int RemainingBytes => _level == RootLevel
+        ? _serializedData.Length - _offset
+        : Math.Min(_serializedData.Length - _offset, _objectDepthSizes[_level]);
+
+    private int ValidateCollectionSize(int count, int minimumItemSize)
     {
-        fixed (byte* ptr = data)
+        var size = (long)count * minimumItemSize;
+        if (count < 0 || size > RemainingBytes)
         {
-            return new string((sbyte*)ptr, offset, length, encoding);
+            throw new InvalidDataException("The collection count exceeds the available data.");
+        }
+
+        return (int)size;
+    }
+
+    private  void EnsureAvailable(int size)
+    {
+        if (size < 0 || size > RemainingBytes)
+        {
+            throw new InvalidDataException("The payload length exceeds the available data.");
         }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private bool CanReadBytesForCurrentLevel(int size)
     {
-        if (_level == RootLevel && _offset + size <= _serializedData.Length)
+        if (RemainingBytes == 0)
         {
-            return true;
+            return false;
         }
 
-        if (_level > RootLevel && _objectDepthSizes[_level] >= size)
-        {
-            return true;
-        }
-
-        return false;
+        EnsureAvailable(size);
+        return true;
     }
 
     private void Reset()

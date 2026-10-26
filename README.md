@@ -11,9 +11,13 @@ Usage
 ---------------------
 
 ~~~csharp
+namespace Example;
+
+using LBinarySerializer;
+
 public class TestClass : ILBinarySerializable
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
     public int Age { get; set; }
 
     public void Serialize(LBinarySerializer serializer)
@@ -31,22 +35,56 @@ public class TestClass : ILBinarySerializable
 
 public static class Converter
 {
-    public static byte[] Serialize(T object) where T : ILBinarySerializable
+    public static byte[] Serialize<T>(T value) where T : ILBinarySerializable
     {
         using var serializer = new LBinarySerializer();
-        object.Serialize(serializer);
+        value.Serialize(serializer);
         return serializer.ToArray();
     }
 
-    public static T Deserialize<T>(byte[] rawData) where T : class, ILBinarySerializable, new()
+    public static T? Deserialize<T>(byte[] rawData) where T : class, ILBinarySerializable, new()
     {
-        var deserializer = new Deserializer(rawData);
+        var deserializer = new LBinaryDeserializer(rawData);
         return deserializer.Deserialize<T>();
     }
 }
 ~~~
 
 The maximum size of serialized data is [2,147,483,647](https://docs.microsoft.com/en-us/dotnet/api/system.array?view=net-8.0#remarks) bytes.
+
+Result lifetime
+---------------
+
+`ToArray()` returns an independent copy. Use it when returning bytes from a method,
+storing them, or passing them to work that can outlive the serializer:
+
+~~~csharp
+using var serializer = new LBinarySerializer();
+serializer.Write("saved result");
+byte[] result = serializer.ToArray(); // Remains valid after disposal or reuse.
+~~~
+
+`ToMemory()` returns a borrowed view of a pooled buffer without copying. Keep the
+serializer alive and do not write, reset, or dispose it while using that view.
+After disposal or buffer growth, another serializer may reuse and overwrite the
+buffer. For asynchronous consumers, finish and await their use before changing or
+disposing the serializer.
+
+Validation and compatibility
+---------------------------
+
+Invalid lengths, truncated fields, and collection counts that exceed the available
+payload throw `InvalidDataException`. Missing trailing fields at an object boundary
+still receive default values so older payloads remain readable.
+Missing trailing nested objects receive `null`; an explicit zero-size object is
+still constructed. Every declared collection entry must have its own headers.
+Serialization rejects objects beyond the nesting limit with `InvalidOperationException`;
+deserialization rejects them with `InvalidDataException`.
+
+`ReadStruct<T>` requires an unmanaged type and a stored size matching that type.
+Enums use four bytes: byte, sbyte, short, ushort, int, and uint underlying types are
+supported; long and ulong underlying types throw `NotSupportedException`.
+String dictionary keys are encoded and decoded as UTF-8.
 
 Array (List) structure
 ---------------------
@@ -175,39 +213,48 @@ Supported structure types
 
 Performance tests and comparison
 ------------------------
+Run both suites in Release mode:
+
+~~~sh
+dotnet run -c Release --project tests/LBinarySerializer.PerformanceTests/ -- --filter '*'
+~~~
+
+Measured on 2026-10-25. JSON serialization and deserialization use the same options;
+setup verifies that the measured JSON reader restores the original object.
+
 ### .NET 10
 ~~~
-BenchmarkDotNet v0.15.6, macOS 26.1 (25B78) [Darwin 25.1.0]
+BenchmarkDotNet v0.15.6, macOS 26.7.1 (25G241) [Darwin 25.6.0]
 Apple M1 Max, 1 CPU, 10 logical and 10 physical cores
-.NET SDK 10.0.100
-  [Host]     : .NET 10.0.0 (10.0.0, 10.0.25.52411), Arm64 RyuJIT armv8.0-a
-  DefaultJob : .NET 10.0.0 (10.0.0, 10.0.25.52411), Arm64 RyuJIT armv8.0-a
+.NET SDK 10.0.401
+  [Host]     : .NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
+  DefaultJob : .NET 10.0.12 (10.0.12, 10.0.1226.42308), Arm64 RyuJIT armv8.0-a
 ~~~
 
 #### Small objects
 
 | Method                     | Categories                | N | Mean      | Ratio | RatioSD | Gen0   | Allocated | Alloc Ratio |
 |--------------------------- |-------------------------- |-- |----------:|------:|--------:|-------:|----------:|------------:|
-| LBinaryDeserializer        | Deserialize Small Objects | 1 |  42.59 ns |  1.00 |    0.01 | 0.0268 |     168 B |        1.00 |
-| ProtoBufDeserializer       | Deserialize Small Objects | 1 | 164.02 ns |  3.85 |    0.02 | 0.0267 |     168 B |        1.00 |
-| JsonSerializerDeserializer | Deserialize Small Objects | 1 | 154.87 ns |  3.64 |    0.02 | 0.0076 |      48 B |        0.29 |
-| MemoryPackDeserializer     | Deserialize Small Objects | 1 |  29.24 ns |  0.69 |    0.00 | 0.0268 |     168 B |        1.00 |
+| LBinaryDeserializer        | Deserialize Small Objects | 1 |  43.17 ns |  1.00 |    0.03 | 0.0268 |     168 B |        1.00 |
+| ProtoBufDeserializer       | Deserialize Small Objects | 1 | 163.35 ns |  3.79 |    0.07 | 0.0267 |     168 B |        1.00 |
+| JsonSerializerDeserializer | Deserialize Small Objects | 1 | 236.18 ns |  5.47 |    0.10 | 0.0267 |     168 B |        1.00 |
+| MemoryPackDeserializer     | Deserialize Small Objects | 1 |  29.47 ns |  0.68 |    0.01 | 0.0268 |     168 B |        1.00 |
 |                            |                           |   |           |       |         |        |           |             |
-| LBinarySerializer          | Serialize Small Objects   | 1 |  33.23 ns |  1.00 |    0.00 | 0.0166 |     104 B |        1.00 |
-| ProtoBufSerializer         | Serialize Small Objects   | 1 | 115.43 ns |  3.47 |    0.02 | 0.0166 |     104 B |        1.00 |
-| JsonSerializer             | Serialize Small Objects   | 1 | 151.22 ns |  4.55 |    0.03 | 0.0267 |     168 B |        1.62 |
-| MemoryPackSerializer       | Serialize Small Objects   | 1 |  36.07 ns |  1.09 |    0.01 | 0.0166 |     104 B |        1.00 |
+| LBinarySerializer          | Serialize Small Objects   | 1 |  38.43 ns |  1.00 |    0.00 | 0.0166 |     104 B |        1.00 |
+| ProtoBufSerializer         | Serialize Small Objects   | 1 | 117.69 ns |  3.06 |    0.02 | 0.0165 |     104 B |        1.00 |
+| JsonSerializer             | Serialize Small Objects   | 1 | 159.34 ns |  4.15 |    0.01 | 0.0267 |     168 B |        1.62 |
+| MemoryPackSerializer       | Serialize Small Objects   | 1 |  36.84 ns |  0.96 |    0.01 | 0.0166 |     104 B |        1.00 |
 
 #### Large objects
 
 | Method                     | Categories                | N | Mean       | Ratio | RatioSD | Gen0   | Gen1   | Allocated | Alloc Ratio |
 |--------------------------- |-------------------------- |-- |-----------:|------:|--------:|-------:|-------:|----------:|------------:|
-| LBinaryDeserializer        | Deserialize Large Objects | 1 |   457.8 ns |  1.00 |    0.01 | 0.2956 | 0.0014 |    1856 B |        1.00 |
-| ProtoBufDeserializer       | Deserialize Large Objects | 1 | 1,340.2 ns |  2.93 |    0.03 | 0.2956 | 0.0019 |    1856 B |        1.00 |
-| JsonSerializerDeserializer | Deserialize Large Objects | 1 | 1,031.4 ns |  2.25 |    0.02 | 0.0172 |      - |     112 B |        0.06 |
-| MemoryPackDeserializer     | Deserialize Large Objects | 1 |   335.2 ns |  0.73 |    0.01 | 0.2956 | 0.0010 |    1856 B |        1.00 |
+| LBinaryDeserializer        | Deserialize Large Objects | 1 |   503.5 ns |  1.00 |    0.04 | 0.2956 | 0.0010 |    1856 B |        1.00 |
+| ProtoBufDeserializer       | Deserialize Large Objects | 1 | 1,399.6 ns |  2.78 |    0.13 | 0.2956 | 0.0019 |    1856 B |        1.00 |
+| JsonSerializerDeserializer | Deserialize Large Objects | 1 | 2,131.9 ns |  4.24 |    0.12 | 0.4082 |      - |    2576 B |        1.39 |
+| MemoryPackDeserializer     | Deserialize Large Objects | 1 |   341.3 ns |  0.68 |    0.02 | 0.2956 | 0.0010 |    1856 B |        1.00 |
 |                            |                           |   |            |       |         |        |        |           |             |
-| LBinarySerializer          | Serialize Large Objects   | 1 |   347.4 ns |  1.00 |    0.01 | 0.1273 |      - |     800 B |        1.00 |
-| ProtoBufSerializer         | Serialize Large Objects   | 1 |   787.5 ns |  2.27 |    0.02 | 0.1154 |      - |     728 B |        0.91 |
-| JsonSerializer             | Serialize Large Objects   | 1 | 1,055.5 ns |  3.04 |    0.02 | 0.2365 |      - |    1488 B |        1.86 |
-| MemoryPackSerializer       | Serialize Large Objects   | 1 |   222.3 ns |  0.64 |    0.00 | 0.1183 |      - |     744 B |        0.93 |
+| LBinarySerializer          | Serialize Large Objects   | 1 |   398.6 ns |  1.00 |    0.02 | 0.1273 |      - |     800 B |        1.00 |
+| ProtoBufSerializer         | Serialize Large Objects   | 1 |   802.6 ns |  2.01 |    0.03 | 0.1154 |      - |     728 B |        0.91 |
+| JsonSerializer             | Serialize Large Objects   | 1 | 1,070.8 ns |  2.69 |    0.05 | 0.2365 |      - |    1488 B |        1.86 |
+| MemoryPackSerializer       | Serialize Large Objects   | 1 |   223.9 ns |  0.56 |    0.01 | 0.1185 |      - |     744 B |        0.93 |

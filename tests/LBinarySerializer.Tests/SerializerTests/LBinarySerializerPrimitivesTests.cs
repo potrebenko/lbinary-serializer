@@ -55,7 +55,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(value);
+        serializer.ToArray().Should().Equal(value);
         serializer.ToArray().Should().HaveCount(value.Length);
     }
     
@@ -67,7 +67,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value.AsSpan());
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(value);
+        serializer.ToArray().Should().Equal(value);
         serializer.ToArray().Should().HaveCount(value.Length);
     }
     
@@ -79,7 +79,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(int));
     }
     
@@ -91,7 +91,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(uint));
     }
     
@@ -103,7 +103,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(short));
     }
     
@@ -115,7 +115,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(ushort));
     }
     
@@ -127,7 +127,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(long));
     }
     
@@ -139,7 +139,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(ulong));
     }
     
@@ -151,7 +151,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(float));
     }
     
@@ -163,7 +163,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(double));
     }
         
@@ -175,7 +175,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(decimal.GetBits(value).SelectMany(BitConverter.GetBytes));
+        serializer.ToArray().Should().Equal(decimal.GetBits(value).SelectMany(BitConverter.GetBytes));
         serializer.ToArray().Should().HaveCount(sizeof(decimal));
     }
     
@@ -187,7 +187,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(short));
     }
     
@@ -200,7 +200,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(value.ToByteArray());
+        serializer.ToArray().Should().Equal(value.ToByteArray());
         serializer.ToArray().Should().HaveCount(guidSize);
     }
     
@@ -215,8 +215,8 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Take(4).Should().BeEquivalentTo(BitConverter.GetBytes((int)DateTimeKind.Unspecified));
-        serializer.ToArray().Skip(4).Should().BeEquivalentTo(BitConverter.GetBytes(value.Ticks));
+        serializer.ToArray().Take(4).Should().Equal(BitConverter.GetBytes((int)DateTimeKind.Unspecified));
+        serializer.ToArray().Skip(4).Should().Equal(BitConverter.GetBytes(value.Ticks));
         serializer.ToArray().Should().HaveCount(expectedLength);
     }
     
@@ -228,7 +228,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value.Ticks));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value.Ticks));
         serializer.ToArray().Should().HaveCount(sizeof(long));
     }
     
@@ -240,7 +240,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes(value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes(value));
         serializer.ToArray().Should().HaveCount(sizeof(short));
     }
 
@@ -256,7 +256,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.Write(value);
 
         // Assert
-        serializer.ToArray().Take(8).Should().BeEquivalentTo(BitConverter.GetBytes(value.Ticks));
+        serializer.ToArray().Take(8).Should().Equal(BitConverter.GetBytes(value.Ticks));
         serializer.ToArray().Should().HaveCount(expectedLength);
     }
 
@@ -268,7 +268,7 @@ public class LBinarySerializerPrimitivesTests
         serializer.WriteEnum(value);
 
         // Assert
-        serializer.ToArray().Should().BeEquivalentTo(BitConverter.GetBytes((int)value));
+        serializer.ToArray().Should().Equal(BitConverter.GetBytes((int)value));
         serializer.ToArray().Should().HaveCount(sizeof(int));
     }
 
