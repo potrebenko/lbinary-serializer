@@ -142,7 +142,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: "lbinaryserializer.${{ steps.version.outputs.version }}"
-          path: ./artifacts/*.nupkg
+          path: |
+            ./artifacts/*.nupkg
+            ./artifacts/*.snupkg
           retention-days: 30
 
   publish:
@@ -164,7 +166,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: "lbinaryserializer.${{ inputs.version }}"
+          name: "lbinaryserializer.${{ needs.build.outputs.package-version }}"
           path: ./artifacts
 
       - name: Setup .NET
@@ -181,4 +183,4 @@ jobs:
 
       - name: Complete publishing
         run: |
-          echo 'Publish to nuget version ${{ inputs.version }}'
+          echo 'Publish to nuget version ${{ needs.build.outputs.package-version }}'

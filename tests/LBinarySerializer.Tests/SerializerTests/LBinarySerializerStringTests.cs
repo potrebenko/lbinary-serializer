@@ -17,7 +17,7 @@ public class LBinarySerializerStringTests
         length.Should().Be(value.Length);
 
         // Check the string
-        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.UTF8.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().Equal(Encoding.UTF8.GetBytes(value));
     }
 
 
@@ -34,7 +34,7 @@ public class LBinarySerializerStringTests
         length.Should().Be(value.Length);
 
         // Check the string
-        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.ASCII.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().Equal(Encoding.ASCII.GetBytes(value));
     }
 
     [Theory]
@@ -53,7 +53,7 @@ public class LBinarySerializerStringTests
         length.Should().Be(Encoding.UTF8.GetByteCount(value));
 
         // Check the string
-        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.UTF8.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().Equal(Encoding.UTF8.GetBytes(value));
     }
 
     [Theory]
@@ -70,7 +70,7 @@ public class LBinarySerializerStringTests
         length.Should().Be(Encoding.UTF32.GetByteCount(value));
 
         // Check the string
-        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.UTF32.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().Equal(Encoding.UTF32.GetBytes(value));
     }
 
     [Theory]
@@ -87,7 +87,7 @@ public class LBinarySerializerStringTests
         length.Should().Be(Encoding.Unicode.GetByteCount(value));
 
         // Check the string
-        serializer.ToArray().Skip(4).Should().BeEquivalentTo(Encoding.Unicode.GetBytes(value));
+        serializer.ToArray().Skip(4).Should().Equal(Encoding.Unicode.GetBytes(value));
     }
 
     [Theory]

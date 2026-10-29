@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Buffers.Binary;
+﻿using System.Buffers.Binary;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -18,7 +17,6 @@ public class LBinarySerializer : IDisposable
     private const int DoubleSize = sizeof(double);
     private const int DecimalSize = sizeof(decimal);
 
-    private readonly int[] _objectDepthSizes = new int[SerializerSettings.MaxDepthSize];
     private byte[] _internalBuffer;
     private int _offset;
     private int _level;
@@ -74,81 +72,78 @@ public class LBinarySerializer : IDisposable
 
     public void Write(int value)
     {
-        Span<byte> buffer = stackalloc byte[IntSize];
-        BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, IntSize);
+        BinaryPrimitives.WriteInt32LittleEndian(_internalBuffer.AsSpan(_offset, IntSize), value);
+        _offset += IntSize;
     }
 
     private void Write(int value, int position)
     {
-        Span<byte> buffer = stackalloc byte[IntSize];
-        BinaryPrimitives.WriteInt32LittleEndian(buffer, value);
-        WriteToStream(buffer, position);
+        BufferPool.EnsureCapacity(ref _internalBuffer, position, IntSize);
+        BinaryPrimitives.WriteInt32LittleEndian(_internalBuffer.AsSpan(position, IntSize), value);
     }
 
     public void Write(uint value)
     {
-        Span<byte> buffer = stackalloc byte[IntSize];
-        BinaryPrimitives.WriteUInt32LittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, IntSize);
+        BinaryPrimitives.WriteUInt32LittleEndian(_internalBuffer.AsSpan(_offset, IntSize), value);
+        _offset += IntSize;
     }
 
     public void Write(short value)
     {
-        Span<byte> buffer = stackalloc byte[ShortSize];
-        BinaryPrimitives.WriteInt16LittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, ShortSize);
+        BinaryPrimitives.WriteInt16LittleEndian(_internalBuffer.AsSpan(_offset, ShortSize), value);
+        _offset += ShortSize;
     }
 
     public void Write(ushort value)
     {
-        Span<byte> buffer = stackalloc byte[ShortSize];
-        BinaryPrimitives.WriteUInt16LittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, ShortSize);
+        BinaryPrimitives.WriteUInt16LittleEndian(_internalBuffer.AsSpan(_offset, ShortSize), value);
+        _offset += ShortSize;
     }
 
     public void Write(long value)
     {
-        Span<byte> buffer = stackalloc byte[LongSize];
-        BinaryPrimitives.WriteInt64LittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, LongSize);
+        BinaryPrimitives.WriteInt64LittleEndian(_internalBuffer.AsSpan(_offset, LongSize), value);
+        _offset += LongSize;
     }
 
     public void Write(ulong value)
     {
-        Span<byte> buffer = stackalloc byte[LongSize];
-        BinaryPrimitives.WriteUInt64LittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, LongSize);
+        BinaryPrimitives.WriteUInt64LittleEndian(_internalBuffer.AsSpan(_offset, LongSize), value);
+        _offset += LongSize;
     }
 
     public void Write(float value)
     {
-        Span<byte> buffer = stackalloc byte[FloatSize];
-        BinaryPrimitives.WriteSingleLittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, FloatSize);
+        BinaryPrimitives.WriteSingleLittleEndian(_internalBuffer.AsSpan(_offset, FloatSize), value);
+        _offset += FloatSize;
     }
 
     public void Write(double value)
     {
-        Span<byte> buffer = stackalloc byte[DoubleSize];
-        BinaryPrimitives.WriteDoubleLittleEndian(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, DoubleSize);
+        BinaryPrimitives.WriteDoubleLittleEndian(_internalBuffer.AsSpan(_offset, DoubleSize), value);
+        _offset += DoubleSize;
     }
 
     public void Write(decimal value)
     {
-        Span<int> bits = stackalloc int[4];
-        decimal.GetBits(value, bits);
-        Span<byte> buffer = stackalloc byte[DecimalSize];
-        MemoryMarshal.Cast<int, byte>(bits).CopyTo(buffer);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, DecimalSize);
+        decimal.GetBits(value, MemoryMarshal.Cast<byte, int>(_internalBuffer.AsSpan(_offset, DecimalSize)));
+        _offset += DecimalSize;
     }
 
     public void Write(Half value)
     {
-        Span<byte> buffer = stackalloc byte[ShortSize];
-        BitConverter.TryWriteBytes(buffer, value);
-        WriteToStream(buffer);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, ShortSize);
+        BitConverter.TryWriteBytes(_internalBuffer.AsSpan(_offset, ShortSize), value);
+        _offset += ShortSize;
     }
 
     public void Write(Guid value)
@@ -157,7 +152,6 @@ public class LBinarySerializer : IDisposable
         BufferPool.EnsureCapacity(ref _internalBuffer, _offset, guidSize);
         value.TryWriteBytes(_internalBuffer.AsSpan(_offset, guidSize));
         _offset += guidSize;
-        _objectDepthSizes[_level] += guidSize;
     }
 
     public void Write(DateTime value)
@@ -184,10 +178,16 @@ public class LBinarySerializer : IDisposable
 
     public void WriteEnum<TEnum>(TEnum value) where TEnum : struct, Enum
     {
+        if (Unsafe.SizeOf<TEnum>() > IntSize)
+        {
+            throw new NotSupportedException("Enums with 64-bit underlying types are not supported by the four-byte format.");
+        }
+
         BufferPool.EnsureCapacity(ref _internalBuffer, _offset, IntSize);
-        MemoryMarshal.Write(_internalBuffer.AsSpan(_offset, IntSize), in value);
+        var span = _internalBuffer.AsSpan(_offset, IntSize);
+        span.Clear(); // Narrow enums must not expose bytes left by a previous buffer user.
+        MemoryMarshal.Write(span, in value);
         _offset += IntSize;
-        _objectDepthSizes[_level] += IntSize;
     }
 
     #endregion
@@ -206,52 +206,29 @@ public class LBinarySerializer : IDisposable
             return;
         }
 
-        int stringSize;
-        switch (encoding)
+        var textEncoding = encoding switch
         {
-            case EncodingType.UTF8:
-                stringSize = Encoding.UTF8.GetByteCount(value);
-                Write(stringSize);
-                BufferPool.EnsureCapacity(ref _internalBuffer, _offset, stringSize);
-                Encoding.UTF8.GetBytes(value, _internalBuffer.AsSpan(_offset, stringSize));
-                _offset += stringSize;
-                _objectDepthSizes[_level] += stringSize;
-                break;
-            case EncodingType.ASCII:
-                stringSize = value.Length;
-                Write(stringSize);
-                Encoding.ASCII.GetBytes(value, 0, stringSize, _internalBuffer, _offset);
-                _offset += stringSize;
-                _objectDepthSizes[_level] += stringSize;
-                break;
-            case EncodingType.UTF16:
-                stringSize = Encoding.Unicode.GetByteCount(value);
-                Write(stringSize);
-                unsafe
-                {
-                    fixed (byte* ptr = &_internalBuffer[_offset])
-                    {
-                        fixed (char* str = value)
-                        {
-                            Buffer.MemoryCopy(str, ptr, stringSize, stringSize);
-                        }
-                    }
-                }
+            EncodingType.UTF8 => Encoding.UTF8,
+            EncodingType.ASCII => Encoding.ASCII,
+            EncodingType.UTF16 => Encoding.Unicode,
+            EncodingType.UTF32 => Encoding.UTF32,
+            _ => throw new NotImplementedException()
+        };
 
-                _offset += stringSize;
-                _objectDepthSizes[_level] += stringSize;
-                break;
-            case EncodingType.UTF32:
-                stringSize = Encoding.UTF32.GetByteCount(value);
-                Write(stringSize);
-                BufferPool.EnsureCapacity(ref _internalBuffer, _offset, stringSize);
-                Encoding.UTF32.GetBytes(value, _internalBuffer.AsSpan(_offset, stringSize));
-                _offset += stringSize;
-                _objectDepthSizes[_level] += stringSize;
-                break;
-            default:
-                throw new NotImplementedException();
+        // Four bytes per UTF-16 code unit plus fallback space bounds all supported encodings.
+        if (4L * (value.Length + 1L) <= _internalBuffer.Length - _offset - IntSize)
+        {
+            var bytesWritten = textEncoding.GetBytes(value, _internalBuffer.AsSpan(_offset + IntSize));
+            BinaryPrimitives.WriteInt32LittleEndian(_internalBuffer.AsSpan(_offset, IntSize), bytesWritten);
+            _offset += IntSize + bytesWritten;
+            return;
         }
+
+        var stringSize = textEncoding.GetByteCount(value);
+        Write(stringSize);
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, stringSize);
+        textEncoding.GetBytes(value, _internalBuffer.AsSpan(_offset, stringSize));
+        _offset += stringSize;
     }
 
     public LBinarySerializer Write<T>(T? value) where T : class, ILBinarySerializable
@@ -262,22 +239,22 @@ public class LBinarySerializer : IDisposable
             return this;
         }
 
+        if (_level + 1 >= SerializerSettings.MaxDepthSize)
+        {
+            throw new InvalidOperationException("The maximum object nesting depth was exceeded.");
+        }
+
+        BufferPool.EnsureCapacity(ref _internalBuffer, _offset, IntSize);
         var initialObjectOffset = _offset; // Save object position
         _offset += IntSize; // Reserve space for object size
         _level++; // Increase the level of depth
-        _objectDepthSizes[_level] = 0; // Reset object size
 
         value.Serialize(this); // Serialize object
 
-        var objSize = _objectDepthSizes[_level]; // Get object size without a header
+        var objSize = _offset - initialObjectOffset - IntSize;
         _level--; // Decrease the level of depth
 
-        if (_level > 0)
-        {
-            _objectDepthSizes[_level] += objSize + IntSize; // Add object size to parent
-        }
-
-        WriteHeader(objSize, initialObjectOffset); // Write object size
+        Write(objSize, initialObjectOffset); // Write object size
         return this;
     }
 
@@ -294,7 +271,6 @@ public class LBinarySerializer : IDisposable
         BufferPool.EnsureCapacity(ref _internalBuffer, _offset, size);
         Unsafe.WriteUnaligned(ref _internalBuffer[_offset], value);
         _offset += size;
-        _objectDepthSizes[_level] += size;
     }
 
     #region Arrays
@@ -451,6 +427,16 @@ public class LBinarySerializer : IDisposable
         }
 
         Write(value.Count);
+        
+        if (value.GetType() == typeof(Dictionary<T, TV>))
+        {
+            foreach (var item in (Dictionary<T, TV>)value)
+            {
+                WriteStructure(item.Key);
+                Write(item.Value);
+            }
+            return;
+        }
 
         foreach (var item in value)
         {
@@ -475,6 +461,16 @@ public class LBinarySerializer : IDisposable
 
         Write(value.Count);
 
+        if (value.GetType() == typeof(Dictionary<string, T>))
+        {
+            foreach (var item in (Dictionary<string, T>)value)
+            {
+                Write(item.Key);
+                Write(item.Value);
+            }
+            return;
+        }
+
         foreach (var item in value)
         {
             Write(item.Key);
@@ -497,6 +493,16 @@ public class LBinarySerializer : IDisposable
         }
 
         Write(value.Count);
+
+        if (value.GetType() == typeof(Dictionary<string, T>))
+        {
+            foreach (var item in (Dictionary<string, T>)value)
+            {
+                Write(item.Key);
+                WriteStructure(item.Value);
+            }
+            return;
+        }
 
         foreach (var item in value)
         {
@@ -543,6 +549,13 @@ public class LBinarySerializer : IDisposable
         return destination;
     }
 
+    /// <summary>
+    /// Returns a borrowed view of the serializer's pooled buffer without copying.
+    /// </summary>
+    /// <remarks>
+    /// Keep this serializer alive and do not write, reset, or dispose it while using the view.
+    /// Use <see cref="ToArray"/> for a copy that can outlive or be used independently of the serializer.
+    /// </remarks>
     public ReadOnlyMemory<byte> ToMemory()
     {
         return _internalBuffer.AsMemory(0, _offset);
@@ -565,29 +578,11 @@ public class LBinarySerializer : IDisposable
         }
     }
 
-    private void WriteHeader(int value, int position)
-    {
-        Write(value, position);
-    }
-
     private void WriteOneByte(byte value)
     {
         BufferPool.EnsureCapacity(ref _internalBuffer, _offset, ByteSize);
         _internalBuffer[_offset] = value;
         _offset++;
-        _objectDepthSizes[_level]++;
-    }
-
-    private void WriteToStream(ReadOnlySpan<byte> buffer, int offset, int size = -1, bool updateOffset = false)
-    {
-        var length = size > 0 ? size : buffer.Length;
-        BufferPool.EnsureCapacity(ref _internalBuffer, offset, length);
-        buffer.Slice(0, length).CopyTo(_internalBuffer.AsSpan(offset, length));
-        if (updateOffset)
-        {
-            _offset += length;
-            _objectDepthSizes[_level] += length;
-        }
     }
 
     private void WriteToStream(ReadOnlySpan<byte> buffer)
@@ -596,7 +591,6 @@ public class LBinarySerializer : IDisposable
         BufferPool.EnsureCapacity(ref _internalBuffer, _offset, bufferLength);
         buffer.CopyTo(_internalBuffer.AsSpan(_offset, bufferLength));
         _offset += bufferLength;
-        _objectDepthSizes[_level] += bufferLength;
     }
 
     private void WriteToStream(byte[] buffer)
@@ -617,7 +611,6 @@ public class LBinarySerializer : IDisposable
         }
 
         _offset += length;
-        _objectDepthSizes[_level] += length;
     }
 
     public void Dispose()

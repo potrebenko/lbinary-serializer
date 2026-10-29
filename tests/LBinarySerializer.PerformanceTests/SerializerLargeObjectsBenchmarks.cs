@@ -47,6 +47,12 @@ public class SerializerLargeObjectsBenchmarks
         
         _jsonSerializedData = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(_rawData, JsonSerializerOptions);
         _memoryPackSerializedData = MemoryPackSerializer.Serialize(_rawData);
+
+        var restoredJson = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(JsonSerializerDeserializer(), JsonSerializerOptions);
+        if (!_jsonSerializedData.AsSpan().SequenceEqual(restoredJson))
+        {
+            throw new InvalidOperationException("The JSON benchmark did not restore the original object.");
+        }
     }
 
     [Benchmark(Baseline = true, Description = "LBinarySerializer")]
@@ -115,12 +121,15 @@ public class SerializerLargeObjectsBenchmarks
     
     [Benchmark(Description = "JsonSerializerDeserializer")]
     [BenchmarkCategory(BenchmarkCategories.DeserializeLarge)]
-    public void JsonSerializerDeserializer()
+    public LargeObject? JsonSerializerDeserializer()
     {
+        LargeObject? result = null;
         for (int i = 0; i < N; i++)
         {
-            var result = System.Text.Json.JsonSerializer.Deserialize<LargeObject>(_jsonSerializedData);
+            result = System.Text.Json.JsonSerializer.Deserialize<LargeObject>(_jsonSerializedData, JsonSerializerOptions);
         }
+
+        return result;
     }
 
     [Benchmark(Description = "MemoryPackDeserializer")]

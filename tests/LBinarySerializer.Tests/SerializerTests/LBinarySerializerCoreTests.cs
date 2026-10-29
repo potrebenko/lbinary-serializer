@@ -56,7 +56,7 @@ public class LBinarySerializerCoreTests
         var memory = serializer.ToMemory();
 
         // Assert
-        memory.ToArray().Should().BeEquivalentTo(serializer.ToArray());
+        memory.ToArray().Should().Equal(serializer.ToArray());
     }
 
     [Theory]
@@ -75,6 +75,24 @@ public class LBinarySerializerCoreTests
         var result = serializer.ToArray();
         result.Should().HaveCount(sizeof(int));
         BitConverter.ToInt32(result).Should().Be(second);
+    }
+
+    [Fact]
+    public void ToMemory_ResetAndOverwrite_ShouldExposeBorrowedBufferWhileToArrayKeepsCopy()
+    {
+        // Arrange
+        using var serializer = new LBinarySerializer();
+        serializer.Write(42);
+        var memory = serializer.ToMemory();
+        var copy = serializer.ToArray();
+
+        // Act
+        serializer.Reset();
+        serializer.Write(99);
+
+        // Assert
+        BitConverter.ToInt32(memory.Span).Should().Be(99);
+        BitConverter.ToInt32(copy).Should().Be(42);
     }
 
     [Fact]
