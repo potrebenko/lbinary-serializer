@@ -18,7 +18,6 @@ public class LBinaryDeserializer
     private const int GuidSize = 16;
     private const int RootLevel = 0;
 
-    private readonly int[] _decimalBuffer = new int[4];
     private readonly int[] _objectDepthSizes = new int[SerializerSettings.MaxDepthSize];
     private int _level = RootLevel;
     private byte[] _serializedData;
@@ -277,14 +276,10 @@ public class LBinaryDeserializer
 
         var span = _serializedData.AsSpan(_offset, DecimalSize);
         var ints = MemoryMarshal.Cast<byte, int>(span);
-        _decimalBuffer[0] = ints[0];
-        _decimalBuffer[1] = ints[1];
-        _decimalBuffer[2] = ints[2];
-        _decimalBuffer[3] = ints[3];
 
         _offset += DecimalSize;
         _objectDepthSizes[_level] -= DecimalSize;
-        return new decimal(_decimalBuffer);
+        return new decimal(ints);
     }
 
     public Half ReadHalf()
@@ -474,7 +469,7 @@ public class LBinaryDeserializer
         return list;
     }
 
-    public List<T?>? ReadListOf<T>(bool unused = false) where T : unmanaged
+    public List<T>? ReadListOf<T>(bool unused = false) where T : unmanaged
     {
         var length = ReadInt();
         switch (length)
@@ -482,11 +477,11 @@ public class LBinaryDeserializer
             case ObjectValue.Null:
                 return null;
             case 0:
-                return new List<T?>();
+                return new List<T>();
         }
 
         var dataSize = ValidateCollectionSize(length, Unsafe.SizeOf<T>());
-        var list = new List<T?>(length);
+        var list = new List<T>(length);
         var items = MemoryMarshal.Cast<byte, T>(_serializedData.AsSpan(_offset, dataSize));
         for (var i = 0; i < length; i++)
         {

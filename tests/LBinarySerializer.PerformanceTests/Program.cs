@@ -11,7 +11,7 @@ namespace LBinarySerializer.PerformanceTests
             var config = ManualConfig.Create(DefaultConfig.Instance)
                 .HideColumns(StatisticColumn.Error, StatisticColumn.StdDev);
             BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly)
-                .Run(args.Length == 0 ? ["--filter", "*Large*"] : args, config);
+                .Run(args.Length == 0 ? ["--filter", "*Small*"] : args, config);
         }
     }
 }

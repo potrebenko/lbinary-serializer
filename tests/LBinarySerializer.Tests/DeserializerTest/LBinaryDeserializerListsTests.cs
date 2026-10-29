@@ -169,6 +169,29 @@ public class LBinaryDeserializerListsTests
     #region Unmanaged primitives
 
     [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    [InlineData(3)]
+    public void ReadList_UnmanagedValues_ShouldAllowReserializationWithIdenticalBytes(int count)
+    {
+        // Arrange
+        using var serializer = new LBinarySerializer();
+        var value = count < 0 ? null : Enumerable.Range(0, count).Select(x => x - 1).ToList();
+        serializer.Write(value);
+        var bytes = serializer.ToArray();
+        var deserializer = new LBinaryDeserializer(bytes);
+
+        // Act
+        List<int> result = deserializer.ReadListOf<int>();
+        serializer.Reset();
+        serializer.Write(result);
+
+        // Assert
+        result.Should().BeEquivalentTo(value);
+        serializer.ToArray().Should().Equal(bytes);
+    }
+
+    [Theory]
     [AutoData]
     public void ReadList_IntList_ShouldReturnList(LBinarySerializer serializer, List<int> value)
     {

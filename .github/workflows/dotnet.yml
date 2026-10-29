@@ -142,7 +142,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: "lbinaryserializer.${{ steps.version.outputs.version }}"
-          path: ./artifacts/*.nupkg
+          path: |
+            ./artifacts/*.nupkg
+            ./artifacts/*.snupkg
           retention-days: 30
 
   publish:
